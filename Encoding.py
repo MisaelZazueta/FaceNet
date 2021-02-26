@@ -2,9 +2,8 @@ import os
 import pickle
 import numpy as np
 import cv2
-import mtcnn
 from keras.models import load_model
-from utils import get_face, get_encode, l2_normalizer, normalize
+from utils import get_face, l2_normalizer, normalize
 
 # hyper-parameters
 encoder_model = 'model/facenet_keras.h5'
@@ -12,7 +11,7 @@ people_dir = 'dataset'
 encodings_path = 'encodings/encodings.pkl'
 required_size = (160, 160)
 
-face_detector = mtcnn.MTCNN()
+face_detector = cv2.CascadeClassifier("haarcascade_frontalface_default.xml")
 face_encoder = load_model(encoder_model)
 
 encoding_dict = dict()
@@ -24,8 +23,8 @@ for person_name in os.listdir(people_dir):
         img_path = os.path.join(person_dir, img_name)
         img = cv2.imread(img_path)
         img_rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-        results = face_detector.detect_faces(img_rgb)
-        if results:
+        results = face_detector.detectMultiScale(img_rgb)
+        if results.any():
             res = max(results, key=lambda b: b['box'][2] * b['box'][3])
             face, _, _ = get_face(img_rgb, res['box'])
 
